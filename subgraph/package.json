@@ -1,13 +1,13 @@
 {
-  "name": "people",
+  "name": "pleople-rinkeby-v2",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ people",
-    "create-local": "graph create --node http://localhost:8020/ people",
-    "remove-local": "graph remove --node http://localhost:8020/ people",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 people"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ pleople-rinkeby-v2",
+    "create-local": "graph create --node http://localhost:8020/ pleople-rinkeby-v2",
+    "remove-local": "graph remove --node http://localhost:8020/ pleople-rinkeby-v2",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 pleople-rinkeby-v2"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.20.0",

@@ -18,15 +18,22 @@ var options = {
 
 let main = async () => {
     try {
-        //Create new wallet instance
-        console.log("...creating new account & wallet");
+
+        //load private key and address
+        const KEY_HEX = process.env.PRIVATE_KEY;
+        const ADDRESS_HEX =process.env.ADDRESS; 
+        // console.log("Private Key:", KEY_HEX);
+        // console.log("Address: ", ADDRESS_HEX);
+
+        //Connect to blockchain and get account data
         const web3 = new Web3(GETH_URL);
-        let account = web3.eth.accounts.create(web3.utils.randomHex(32));
-        let wallet = web3.eth.accounts.wallet.add(account);
-        let keystore = wallet.encrypt(web3.utils.randomHex(32));
-        console.log("account: ", account.address);
-        let balance = await web3.eth.getBalance(account.address);
+        console.log("...Reading account data from Geth node at: ", GETH_URL);
+        console.log("Accounts: ", ADDRESS_HEX);
+        let balance = await web3.eth.getBalance(ADDRESS_HEX);
         console.log("Balance: ", web3.utils.fromWei(balance.toString(), "ether"));
+        const registry = new web3.eth.Contract(REGISTRY.abi, REGISTRY_ADDRESS);
+        let old_name = await registry.methods.getPerson(ADDRESS_HEX).call({from: ADDRESS_HEX});
+        console.log("Current Name: ", old_name[0]);
 
         //Create Tx Object
         let res = await rp(options);
@@ -34,14 +41,14 @@ let main = async () => {
         let id = Math.floor(Math.random() * movie.actorList.length); 
         let name = movie.actorList[id].name;
         let url = movie.actorList[id].image;
-        const registry = new web3.eth.Contract(REGISTRY.abi, REGISTRY_ADDRESS);
+
         console.log(`... creating TX object for "CreatePerson(${name})"`);
         let data = registry.methods.createPerson(name, url);
-        let nonce = await web3.eth.getTransactionCount(account.address);
-        const gas = web3.utils.toHex("30000000");
+        let nonce = await web3.eth.getTransactionCount(ADDRESS_HEX);
+        const gas = web3.utils.toHex("10000000")
         const gasPrice = await web3.eth.getGasPrice();
         const tx = {
-            from : account.address,
+            from : ADDRESS_HEX,
             to : REGISTRY_ADDRESS,
             nonce,
             data : data.encodeABI(),
@@ -49,10 +56,15 @@ let main = async () => {
             gas,
         }
 
-        //Send TX
-        console.log("...sending TX");
-        const receipt = await web3.eth.sendTransaction(tx);
-        console.log("Receipt:\n", receipt);
+        console.log("...signing Tx");
+        let signedTx = await web3.eth.accounts.signTransaction(tx, KEY_HEX);
+        //console.log("signedTx: \n", signedTx);
+        console.log("...sending Tx");
+        let result = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        console.log("...Tx receipt:\n", result);
+        console.log("\n\n... reading new name for address: ", ADDRESS_HEX);
+        let new_name = await registry.methods.getPerson(ADDRESS_HEX).call({from: ADDRESS_HEX});
+        console.log("New Name: ", new_name[0]);
             
         } catch(e) {
             console.log("createPerson.send() failed:\n", e);
